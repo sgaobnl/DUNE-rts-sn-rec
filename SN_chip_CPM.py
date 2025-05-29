@@ -141,83 +141,100 @@ def validate_ocr_result(ocr_result, process_id):
 
 ###################################################################################
 
-# Constants
-crop_box = (1120, 792, 1120 + 326, 792 + 326)  # (x, y, x+w, y+h)
-image_directory = "Tested/B011T0001/images"
+def ocr_chip(image_fp, image_fn):
+    # if file exist
+    if os.path.isfile(image_fp+ image_fn): 
+        pass
+    else:
+        print ("File not found")
+        return None
 
-# Define the directory for OCR results
-ocr_results_dir = "Tested/B011T0001/ocr_results"
+    # Constants
+    crop_box = (1120, 792, 1120 + 326, 792 + 326)  # (x, y, x+w, y+h)
+    #image_directory = "Tested/B011T0001/images"
+    
+    # Define the directory for OCR results
+    ocr_results_dir = "./Tested/B011T0001/ocr_results"
+    
+    # Ensure the directory exists
+    os.makedirs(ocr_results_dir, exist_ok=True)
+    
+    # Verify if the directory exists
+    #if not os.path.isdir(image_directory):
+    #    print(f"The directory {image_directory} does not exist. Please check the path.")
+    #    exit(1)
+    
+    # List all files in the directory that contain "_SN.bmp"
+    #all_files = os.listdir(image_directory)
+    #image_files = [f for f in all_files if "_SN.bmp" in f]
+    
+    #if not image_files:
+    #    print(f"No files with '_SN.bmp' found in the directory {image_directory}.")
+    #    exit(1)
+    
+    # Iterate through each image file
+    # image_file = image_fp
+    #for image_file in image_files:
+    if True:
+        image_path = image_fp + image_fn
+        image_file = image_fn
+    
+        # Extract image_number from the filename (assuming it's before the first '_')
+        image_number = image_file.split('_')[0]
+    
+        # Create a directory with the name of image_number
+        #os.makedirs(image_number, exist_ok=True)
+    
+        try:
+            # Open the image
+            image = Image.open(image_path)
+        except IOError as e:
+            print(f"Process ID #{image_number}: ERROR (cannot open image). {e}")
+            return None
+    
+        # Rotate the image 180 degrees
+        rotated_image = image.rotate(180)
+    
+        # Crop the image to the central chip
+        cropped_chip = rotated_image.crop(crop_box)
+    
+        # Convert the cropped image to OpenCV format
+        open_cv_image = cv2.cvtColor(np.array(cropped_chip), cv2.COLOR_RGB2BGR)
+    
+        # Resize the image to make the text more clear
+        resized_image = cv2.resize(open_cv_image, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
+    
+        # Save the resized image tepmorarily to disk
+        #temp_image_path = os.path.join(image_number, f"{image_number}.png")
+        #cv2.imwrite(temp_image_path, resized_image)
+    
+        temp_image_path = os.path.join(ocr_results_dir, f"{image_number}.png")
+        cv2.imwrite(temp_image_path, resized_image)
+    
+        # Perform OCR using MiniCPM
+        ocr_result = perform_ocr_minicpm(temp_image_path)
+    
+        # Save the OCR result to a text file
+        #ocr_output_path = os.path.join(image_number, f"{image_number}.txt")
+        #with open(ocr_output_path, 'w') as f:
+            #f.write(ocr_result)
+    
+         # Save the OCR result to a txt file
+        #ocr_output_path = os.path.join(ocr_results_dir, f"{image_number}.txt")
+        #with open(ocr_output_path, 'w') as f:
+        #    f.write(ocr_result)
+    
+        # Validate the OCR result
+        validate_ocr_result(ocr_result, image_number)
+        return ocr_result
+    
+#        print(f"Processed image {image_path}\nOCR result saved to {ocr_output_path}")
+#        print("***********************************************************************")
+    
 
-# Ensure the directory exists
-os.makedirs(ocr_results_dir, exist_ok=True)
+if __name__ == '__main__':
 
-# Verify if the directory exists
-if not os.path.isdir(image_directory):
-    print(f"The directory {image_directory} does not exist. Please check the path.")
-    exit(1)
-
-# List all files in the directory that contain "_SN.bmp"
-all_files = os.listdir(image_directory)
-image_files = [f for f in all_files if "_SN.bmp" in f]
-
-if not image_files:
-    print(f"No files with '_SN.bmp' found in the directory {image_directory}.")
-    exit(1)
-
-# Iterate through each image file
-for image_file in image_files:
-    image_path = os.path.join(image_directory, image_file)
-
-    # Extract image_number from the filename (assuming it's before the first '_')
-    image_number = image_file.split('_')[0]
-
-    # Create a directory with the name of image_number
-    #os.makedirs(image_number, exist_ok=True)
-
-
-    try:
-        # Open the image
-        image = Image.open(image_path)
-    except IOError as e:
-        print(f"Process ID #{image_number}: ERROR (cannot open image). {e}")
-        continue
-
-    # Rotate the image 180 degrees
-    rotated_image = image.rotate(180)
-
-    # Crop the image to the central chip
-    cropped_chip = rotated_image.crop(crop_box)
-
-    # Convert the cropped image to OpenCV format
-    open_cv_image = cv2.cvtColor(np.array(cropped_chip), cv2.COLOR_RGB2BGR)
-
-    # Resize the image to make the text more clear
-    resized_image = cv2.resize(open_cv_image, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
-
-    # Save the resized image tepmorarily to disk
-    #temp_image_path = os.path.join(image_number, f"{image_number}.png")
-    #cv2.imwrite(temp_image_path, resized_image)
-
-    temp_image_path = os.path.join(ocr_results_dir, f"{image_number}.png")
-    cv2.imwrite(temp_image_path, resized_image)
-
-    # Perform OCR using MiniCPM
-    ocr_result = perform_ocr_minicpm(temp_image_path)
-
-    # Save the OCR result to a text file
-    #ocr_output_path = os.path.join(image_number, f"{image_number}.txt")
-    #with open(ocr_output_path, 'w') as f:
-        #f.write(ocr_result)
-
-     # Save the OCR result to a txt file
-    ocr_output_path = os.path.join(ocr_results_dir, f"{image_number}.txt")
-    with open(ocr_output_path, 'w') as f:
-        f.write(ocr_result)
-
-    # Validate the OCR result
-    validate_ocr_result(ocr_result, image_number)
-
-    print(f"Processed image {image_path}\nOCR result saved to {ocr_output_path}")
-    print("***********************************************************************")
-
-print("Batch Processing complete!")
+    fp = """C:\\Users\\sgao.BNL\\Documents\\GitHub\\DUNE-rts-sn-rec\\Tested\B011T0001\\images\\"""
+    fn = """20240711181215_SN.bmp"""
+    x = ocr_chip(image_fp=fp, image_fn = fn)
+    print (x)
