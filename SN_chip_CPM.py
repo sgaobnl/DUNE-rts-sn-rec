@@ -39,7 +39,8 @@ def perform_ocr_minicpm(image_path):
     encoded_image = encode_image(image)
 
     # API:
-    url = "http://localhost:XXXXX/api/generate"
+#    url = "http://localhost:XXXXX/api/generate"
+    url = "http://wcgpu1.phy.bnl.gov:11434/api/generate"
 
     headers = {
         "Content-Type": "application/json",
@@ -182,34 +183,41 @@ def ocr_chip(image_fp, image_fn):
         # Extract image_number from the filename (assuming it's before the first '_')
         image_number = image_file.split('_')[0]
     
-        # Create a directory with the name of image_number
-        #os.makedirs(image_number, exist_ok=True)
+        ## Create a directory with the name of image_number
+        ##os.makedirs(image_number, exist_ok=True)
     
-        try:
-            # Open the image
-            image = Image.open(image_path)
-        except IOError as e:
-            print(f"Process ID #{image_number}: ERROR (cannot open image). {e}")
-            return None
+        #try:
+        #    # Open the image
+        #    image = Image.open(image_path)
+        #except IOError as e:
+        #    print(f"Process ID #{image_number}: ERROR (cannot open image). {e}")
+        #    return None
     
-        # Rotate the image 180 degrees
-        rotated_image = image.rotate(180)
+        ## Rotate the image 180 degrees
+        #rotated_image = image.rotate(180)
     
-        # Crop the image to the central chip
-        cropped_chip = rotated_image.crop(crop_box)
+        ## Crop the image to the central chip
+        #cropped_chip = rotated_image.crop(crop_box)
     
-        # Convert the cropped image to OpenCV format
-        open_cv_image = cv2.cvtColor(np.array(cropped_chip), cv2.COLOR_RGB2BGR)
+        ## Convert the cropped image to OpenCV format
+        #open_cv_image = cv2.cvtColor(np.array(cropped_chip), cv2.COLOR_RGB2BGR)
     
-        # Resize the image to make the text more clear
-        resized_image = cv2.resize(open_cv_image, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
+        ## Resize the image to make the text more clear
+        #resized_image = cv2.resize(open_cv_image, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
     
-        # Save the resized image tepmorarily to disk
-        #temp_image_path = os.path.join(image_number, f"{image_number}.png")
+        ## Save the resized image tepmorarily to disk
+        ##temp_image_path = os.path.join(image_number, f"{image_number}.png")
+        ##cv2.imwrite(temp_image_path, resized_image)
+    
+        #temp_image_path = os.path.join(ocr_results_dir, f"{image_number}.png")
         #cv2.imwrite(temp_image_path, resized_image)
-    
+
+        print (ocr_results_dir)
         temp_image_path = os.path.join(ocr_results_dir, f"{image_number}.png")
-        cv2.imwrite(temp_image_path, resized_image)
+        image = Image.open(os.path.join(ocr_results_dir, f"{image_number}.png"))
+        rotated_image = image.rotate(180)
+        open_cv_image = cv2.cvtColor(np.array(rotated_image), cv2.COLOR_RGB2BGR)
+        cv2.imwrite(temp_image_path, open_cv_image)
     
         # Perform OCR using MiniCPM
         ocr_result = perform_ocr_minicpm(temp_image_path)
@@ -234,7 +242,7 @@ def ocr_chip(image_fp, image_fn):
 
 if __name__ == '__main__':
 
-    fp = """C:\\Users\\sgao.BNL\\Documents\\GitHub\\DUNE-rts-sn-rec\\Tested\B011T0001\\images\\"""
+    fp = """C:\\SGAO\\Github\\DUNE-rts-sn-rec\\Tested\\B011T0001\\images\\"""
     fn = """20240711181215_SN.bmp"""
     x = ocr_chip(image_fp=fp, image_fn = fn)
     print (x)
