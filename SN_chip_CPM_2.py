@@ -149,16 +149,20 @@ def validate_ocr_result(ocr_result, process_id):
 
 def ocr_chip(image_fp, image_fn, ocr_image_dir):
     image_path = image_fp + image_fn
-    if "_SN" not in image_fn:
-        print (f"{image_fn} is wrong")
-    elif os.path.isfile(image_path): 
+#    if "_SN" not in image_fn:
+#        print (f"{image_fn} is wrong")
+    if os.path.isfile(image_path): 
         pass
     else:
         print ("File not found")
         return None
 
     # Constants
-    crop_box = (1120, 792, 1120 + 326, 792 + 326)  # (x, y, x+w, y+h)
+    x=350
+    y=220
+    w=330
+    h=330
+    crop_box = (x, y, x+w, y+h)  # (x, y, x+w, y+h)
     
     # Extract image_number from the filename (assuming it's before the first '_')
     image_number = image_fn.split('_')[0]
@@ -189,6 +193,7 @@ def ocr_chip(image_fp, image_fn, ocr_image_dir):
     #cv2.imwrite(ocr_image_dir, resized_image)
     cv2.imwrite(ocr_image_dir, resized_image)
     ocr_result = perform_ocr_minicpm(image_path = ocr_image_dir)
+    print (ocr_result)
 
     ocr_flg =  validate_ocr_result(ocr_result, image_number)
     if ocr_flg: 
@@ -233,7 +238,7 @@ def ocr_chip(image_fp, image_fn, ocr_image_dir):
 
 if __name__ == '__main__':
 
-    fp = """C:/Users/sgao.BNL/Documents/GitHub/DUNE-rts-sn-rec/Tested/B011T0001/images/"""
-    fn = """20240711181215_SN.bmp"""
-    x = ocr_chip(image_fp=fp, image_fn = fn, ocr_image_dir = "./Tested/a.png")
+    fp = """D:/RTS_tmp/new/"""
+    fn = """1.png"""
+    x = ocr_chip(image_fp=fp, image_fn = fn, ocr_image_dir = fp + "/1_ocr.png")
     print (x)
